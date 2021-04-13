@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const connection = require('mongoose').connection;
 const { exit } = require('process');
 require('dotenv').config();
-const {sample_project1} = require("./sample_project");
 let projectBaseUrl = "http://localhost:8080/projects/";
 let userBaseUrl = "http://localhost:8081/users/";
 const chaiHttp = require('chai-http');
