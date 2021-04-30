@@ -63,7 +63,6 @@ describe("User project connection tests", () => {
                     .get(user.body._id)
                     .set("Authorization", "Bearer " + godToken)
                     .then((updatedUser) => {
-                        console.log(updatedUser.body);
                         expect(updatedUser).to.have.status(200);
                         expect(updatedUser.body.PIListOfProjects).to.have.length(1);
                         expect(updatedUser.body.CoIListOfProjects).to.have.length(1);
@@ -102,7 +101,6 @@ describe("User project connection tests", () => {
                     .set("Authorization", "Bearer " + godToken)
                     .then(async (deletionRes) => {  //I THINK THIS IS THE ERROR ITS NOT WAITING
                         //DELETE CONNECTION IN USERS
-                        console.log(deletionRes.body)
                         return await chai.request(userBaseUrl)
                         .post("removeProjectConnection")
                         .set("Authorization", "Bearer " + godToken)
@@ -120,6 +118,53 @@ describe("User project connection tests", () => {
                                 expect(updatedUser.body.ColListOfProjects).to.have.length(0);
                             })
                         })
+                    })
+                })
+            })
+        }).catch( (err) => {
+            console.log(err);
+            assert.fail();
+        })
+    })
+
+    it('it should delete the project ID in each involved project', async() => {
+        //CREATING USER
+        return chai.request(authBaseUrl)
+        .post("signUp")
+        .send(sample_user)
+        .then(async (user) => {
+            //CREATING PROJECT WITH USER
+            return await chai.request(projectBaseUrl)
+            .post("")
+            .send(sample_project1)
+            .set("Authorization", "Bearer " + godToken)
+            .then(async (project) => {
+                //LINKING USERS TO PROJECT
+                return await chai.request(userBaseUrl)
+                .put("/connectToProjects/" + project.body._id)
+                .send(sample_user_connection)
+                .set("Authorization", "Bearer " + godToken)
+                .then(async (linkedUserRes) => {
+                    return await chai.request(userBaseUrl)
+                    .delete(user.body._id)
+                    .set("Authorization", "Bearer " + godToken)
+                    .then(async (listOfProjects) => {
+                        return await chai.request(projectBaseUrl)
+                        .post("/removeUserFromProjects")
+                        .set("Authorization", "Bearer " + godToken)
+                        .send(listOfProjects.body)
+                        .then(async (res) => {
+                            return await chai.request(projectBaseUrl)
+                            .get(listOfProjects.body.principalInvestigators[0])
+                            .set("Authorization", "Bearer " + godToken)
+                            .send()
+                            .then(async (projectRes) => {
+                                expect(projectRes).to.have.status(200);
+                                expect(projectRes.body.principalInvestigators).to.have.length(0);
+                                expect(projectRes.body.coInvestigators).to.have.length(0);
+                                expect(projectRes.body.collaborators).to.have.length(0);
+                            })
+                        }) 
                     })
                 })
             })
