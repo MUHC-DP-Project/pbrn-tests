@@ -3,8 +3,8 @@ let sample_project1 =
     {
     // participants
     principalInvestigators: ["TEST_USER@mail.com"],
-    coInvestigators: [],
-    collaborators: [],
+    coInvestigators: ["TEST_USER@mail.com"],
+    collaborators: ["TEST_USER@mail.com"],
     studySize:"Test",
     studyParticipants:["Test","Test1","Test2"],
 

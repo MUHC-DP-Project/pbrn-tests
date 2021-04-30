@@ -46,27 +46,28 @@ describe("User project connection tests", () => {
         return chai.request(authBaseUrl)
         .post("signUp")
         .send(sample_user)
-        .then((user) => {
+        .then(async (user) => {
             //CREATING PROJECT WITH USER
-            return chai.request(projectBaseUrl)
+            return await chai.request(projectBaseUrl)
             .post("")
             .send(sample_project1)
             .set("Authorization", "Bearer " + godToken)
-            .then((project) => {
+            .then(async (project) => {
                 //LINKING USERS TO PROJECT
-                return chai.request(userBaseUrl)
+                return await chai.request(userBaseUrl)
                 .put("/connectToProjects/" + project.body._id)
                 .send(sample_user_connection)
                 .set("Authorization", "Bearer " + godToken)
-                .then((linkedUserRes) => {
-                    return chai.request(userBaseUrl)
+                .then(async (linkedUserRes) => {
+                    return await chai.request(userBaseUrl)
                     .get(user.body._id)
                     .set("Authorization", "Bearer " + godToken)
                     .then((updatedUser) => {
                         console.log(updatedUser.body);
                         expect(updatedUser).to.have.status(200);
-                        let projectList = updatedUser.body.PIListOfProjects;
-                        expect(projectList).to.have.length(1);
+                        expect(updatedUser.body.PIListOfProjects).to.have.length(1);
+                        expect(updatedUser.body.CoIListOfProjects).to.have.length(1);
+                        expect(updatedUser.body.ColListOfProjects).to.have.length(1);
                 })
             })
         }).catch( (err) => {
@@ -82,39 +83,41 @@ describe("User project connection tests", () => {
         return chai.request(authBaseUrl)
         .post("signUp")
         .send(sample_user)
-        .then((user) => {
+        .then(async (user) => {
             //CREATING PROJECT WITH USER
-            return chai.request(projectBaseUrl)
+            return await chai.request(projectBaseUrl)
             .post("")
             .send(sample_project1)
             .set("Authorization", "Bearer " + godToken)
-            .then((project) => {
+            .then(async (project) => {
                 //LINKING USERS TO PROJECT
-                return chai.request(userBaseUrl)
+                return await chai.request(userBaseUrl)
                 .put("/connectToProjects/" + project.body._id)
-                .send()
+                .send(sample_user_connection)
                 .set("Authorization", "Bearer " + godToken)
-                .then((linkedUserRes) => {
+                .then(async (linkedUserRes) => {
                     //DELETING PROJECT
-                    return chai.request(projectBaseUrl)
+                    return await chai.request(projectBaseUrl)
                     .delete(project.body._id.toString())
                     .set("Authorization", "Bearer " + godToken)
-                    .then((deletionRes) => {
+                    .then(async (deletionRes) => {  //I THINK THIS IS THE ERROR ITS NOT WAITING
                         //DELETE CONNECTION IN USERS
-                        return chai.request(userBaseUrl)
+                        console.log(deletionRes.body)
+                        return await chai.request(userBaseUrl)
                         .post("removeProjectConnection")
                         .set("Authorization", "Bearer " + godToken)
                         .send(deletionRes.body)
-                        .then((connectionDeletionRes) => {
+                        .then(async (connectionDeletionRes) => {
                             //GET UPDATED USER
-                            return chai.request(userBaseUrl)
+                            return await chai.request(userBaseUrl)
                             .get(user.body._id)
                             .set("Authorization", "Bearer " + godToken)
                             .then((updatedUser) => {
                                 //CHECK FOR DELETION WORKED
                                 expect(updatedUser).to.have.status(200);
-                                projectList = updatedUser.body.PIListOfProjects;
-                                expect(projectList).to.have.length(0);
+                                expect(updatedUser.body.PIListOfProjects).to.have.length(0);
+                                expect(updatedUser.body.CoIListOfProjects).to.have.length(0);
+                                expect(updatedUser.body.ColListOfProjects).to.have.length(0);
                             })
                         })
                     })
@@ -125,4 +128,4 @@ describe("User project connection tests", () => {
             assert.fail();
         })
     })
-});
+ });
